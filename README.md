@@ -33,14 +33,12 @@ Simple lib to convert HTML to PDF, using puppeteer.
 
 ```javascript
 npm  i  html2pdf
-
 ```
 
   
 
 ```javacript
 yarn add html2pdf
-
 ```
 
   

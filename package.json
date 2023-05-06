@@ -1,5 +1,5 @@
 {
-  "name": "html2pdf",
+  "name": "node-html2pdf",
   "version": "1.0.0",
   "description": "Convert HTML to PDF.",
   "main": "dist/index.js",
