@@ -56,26 +56,23 @@ yarn start
 Using the package:
 
 ```javascript
-import { promises as fs } from 'fs';
-
-import HTML2PDF from '../src/index';
-import { HTML2PDFOptions } from '../src/types';
+const fs = require('fs');
+const HTML2PDF = require('html2pdf-ts');
 
 const example = async () => {
-  const html2pdf: HTML2PDF = new HTML2PDF();
+    const html2pdf = new HTML2PDF();
 
-  const html = await fs.readFile('./example/page.html', 'utf-8');
-  const options: HTML2PDFOptions = {
-    format: 'A4',
-  };
+    const html = fs.readFileSync('./page.html', 'utf-8');
 
-  await html2pdf.createPDF(html, `./example/lotr.pdf`, options);
-  console.log('PDF Generated...');
+    const options = {
+        format: 'A4',
+    };
+
+    await html2pdf.createPDF(html, `./lotr.pdf`, options);
+    console.log('PDF generated...');
 };
 
 example();
-
-
 ```
 
 You can read a html file and pass the content to create the PDF, or you can pass a pure HTML as param.

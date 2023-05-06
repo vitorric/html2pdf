@@ -34,8 +34,8 @@ class HTML2PDF {
                     '--no-zygote',
                     '--disable-gpu',
                     '--disable-dev-shm-usage',
-                    `--window-size=${(_a = resolution === null || resolution === void 0 ? void 0 : resolution.width) !== null && _a !== void 0 ? _a : 1920},${(_b = resolution === null || resolution === void 0 ? void 0 : resolution.height) !== null && _b !== void 0 ? _b : 1080}`
-                ]
+                    `--window-size=${(_a = resolution === null || resolution === void 0 ? void 0 : resolution.width) !== null && _a !== void 0 ? _a : 1920},${(_b = resolution === null || resolution === void 0 ? void 0 : resolution.height) !== null && _b !== void 0 ? _b : 1080}`,
+                ],
             });
         }
     }
