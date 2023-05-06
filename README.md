@@ -1,7 +1,5 @@
 
-# Retorno CNAB
-
-  
+# HTML2PDF-TS
 
 #### NPM badges
 
@@ -21,11 +19,8 @@
 
 # Description
 
-  
-
 Simple lib to convert HTML to PDF, using puppeteer.
 
-  
 
 # Install
 
