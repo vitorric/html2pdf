@@ -27,7 +27,7 @@ Simple lib to convert HTML to PDF, using puppeteer.
   
 
 ```javascript
-npm  i  html2pdf-ts
+npm i html2pdf-ts
 ```
 
   
@@ -57,19 +57,17 @@ Using the package:
 
 ```javascript
 const fs = require('fs');
-const HTML2PDF = require('html2pdf-ts');
+const { html2pdf } = require('html2pdf-ts');
 
 const example = async () => {
-    const html2pdf = new HTML2PDF();
 
     const html = fs.readFileSync('./page.html', 'utf-8');
-
     const options = {
         format: 'A4',
     };
 
     await html2pdf.createPDF(html, `./lotr.pdf`, options);
-    console.log('PDF generated...');
+    console.log('PDF Generated...');
 };
 
 example();
