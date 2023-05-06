@@ -36,6 +36,8 @@
     "typescript": "^5.0.4"
   },
   "keywords": [
+    "nodets",
+    "html2pdf-ts",
     "html2pdf",
     "html",
     "pdf",

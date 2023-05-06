@@ -9,11 +9,11 @@
 
 <!-- [START badges] -->
 
-[![NPM html2pdf package](https://img.shields.io/npm/v/html2pdf.svg)](https://npmjs.org/package/html2pdf)
+[![NPM html2pdf-ts package](https://img.shields.io/npm/v/html2pdf-ts.svg)](https://npmjs.org/package/html2pdf-ts)
 
-[![npm downloads](https://img.shields.io/npm/dm/html2pdf.svg?maxAge=604800)](https://npm-stat.com/charts.html?package=html2pdf&from=2017-01-1)
+[![npm downloads](https://img.shields.io/npm/dm/html2pdf-ts.svg?maxAge=604800)](https://npm-stat.com/charts.html?package=html2pdf-ts&from=2017-01-1)
 
-[![npm downloads](https://img.shields.io/npm/dt/html2pdf.svg?maxAge=604800)](https://npm-stat.com/charts.html?package=html2pdf&from=2017-01-1)
+[![npm downloads](https://img.shields.io/npm/dt/html2pdf-ts.svg?maxAge=604800)](https://npm-stat.com/charts.html?package=html2pdf-ts&from=2017-01-1)
 
 <!-- [END badges] -->
 
@@ -32,13 +32,13 @@ Simple lib to convert HTML to PDF, using puppeteer.
   
 
 ```javascript
-npm  i  html2pdf
+npm  i  html2pdf-ts
 ```
 
   
 
 ```javacript
-yarn add html2pdf
+yarn add html2pdf-ts
 ```
 
   
