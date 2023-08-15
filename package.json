@@ -58,6 +58,7 @@
     "typescript"
   ],
   "dependencies": {
+    "muhammara": "^4.0.0",
     "puppeteer": "^20.1.1"
   }
 }
