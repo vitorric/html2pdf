@@ -48,8 +48,7 @@ class HTML2PDF {
                 printBackground: true,
                 preferCSSPageSize: true,
             };
-            const imgs = document.querySelectorAll('img');
-            await page.waitForFunction(() => ![...imgs].find((i) => !i.complete));
+            await page.waitForFunction(() => !Array.from(document.querySelectorAll('img')).find((i) => !i.complete));
             const pdfBuffer = await page.pdf(optionsPDF);
             await page.close();
             await fs_1.promises.writeFile(options.filePath, pdfBuffer);
