@@ -7,7 +7,7 @@ const example = async () => {
   const html = await fs.readFile('./example/page.html', 'utf-8');
   const options: HTML2PDFOptions = {
     format: 'A4',
-    filePath: './example/lotr.pdf',
+    filePath: './example/example.pdf',
     landscape: false,
     protect: {
       password: '1234',
