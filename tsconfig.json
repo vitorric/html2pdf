@@ -12,7 +12,8 @@
       "typeRoots": [
         "./node_modules/@types",
         "./src/@types"
-      ],                     
+      ],          
+      "types": ["jest", "node"],           
       "resolveJsonModule": true,      
       "esModuleInterop": true,                  
       "skipLibCheck": true,                     

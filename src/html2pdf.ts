@@ -1,5 +1,5 @@
+import { exec } from 'child_process';
 import { promises as fs } from 'fs';
-import muhammara, { PDFWStreamForBuffer, PDFRStreamForBuffer } from 'muhammara';
 import puppeteer, { Browser, PDFOptions } from 'puppeteer';
 
 import { HTML2PDFOptions } from './types';
@@ -7,15 +7,48 @@ import { HTML2PDFOptions } from './types';
 export default class HTML2PDF {
   private browser: Browser = null;
 
-  async createPDF(html: string, options: HTML2PDFOptions): Promise<Buffer> {
+  private queue = [];
+
+  private processing = false;
+
+  constructor() {
+    this.queue = [];
+    this.processing = false;
+  }
+
+  async addToQueue(htmlPath: string, options: HTML2PDFOptions): Promise<void> {
+    if (this.browser === null) {
+      this.browser = await this.launchBrowser();
+    }
+
+    this.queue.push({ htmlPath, options });
+
+    if (!this.processing) {
+      this.processQueue();
+    }
+  }
+
+  async processQueue(): Promise<void> {
+    if (this.queue.length === 0) {
+      this.processing = false;
+      return;
+    }
+
+    this.processing = true;
+    const { htmlPath, options } = this.queue.shift();
+    await this.createPDF(htmlPath, options);
+    this.processQueue();
+  }
+
+  async createPDF(html: string, options: HTML2PDFOptions): Promise<void> {
     try {
       if (this.browser === null) {
-        await this.launchBrowser();
+        this.browser = await this.launchBrowser();
       }
 
       const page = await this.browser.newPage();
 
-      await page.setContent(html, { waitUntil: 'domcontentloaded' });
+      await page.setContent(html, { waitUntil: 'networkidle0' });
 
       const optionsPDF: PDFOptions = {
         format: options.format,
@@ -28,43 +61,29 @@ export default class HTML2PDF {
 
       await page.waitForFunction(
         () =>
-          ![...document.querySelectorAll('img')].find((i: any) => !i.complete)
+          !Array.from(document.querySelectorAll('img')).find(
+            (i: any) => !i.complete
+          )
       );
 
       const pdfBuffer = await page.pdf(optionsPDF);
 
       await page.close();
+
       await fs.writeFile(options.filePath, pdfBuffer);
 
       if (!options.protect) {
-        if (!options.filePath) {
-          return pdfBuffer;
-        }
-        await fs.writeFile(options.filePath, pdfBuffer);
-        return null;
+        return;
       }
 
-      const encryptedPDFBuffer = await this.encryptPDF(
-        pdfBuffer,
-        options.protect.password
-      );
-
-      if (!options.filePath) {
-        return encryptedPDFBuffer;
-      }
-      console.log(encryptedPDFBuffer);
-      await fs.writeFile(options.filePath, encryptedPDFBuffer);
-      return null;
+      await this.encryptPDF(options.filePath, options.protect.password);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      return null;
-    } finally {
-      await this.browser.close();
     }
   }
 
-  private async launchBrowser(): Promise<void> {
-    this.browser = await puppeteer.launch({
+  private async launchBrowser(): Promise<Browser> {
+    return puppeteer.launch({
       headless: true,
       ignoreHTTPSErrors: true,
       devtools: false,
@@ -85,20 +104,20 @@ export default class HTML2PDF {
     });
   }
 
-  private async encryptPDF(body: Buffer, password: string): Promise<Buffer> {
+  private async encryptPDF(
+    filePath: string,
+    password: string
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       try {
-        console.log(body.length);
-        const bufferHTML = new PDFRStreamForBuffer(body);
-        const outputHTML = new PDFWStreamForBuffer();
-
-        muhammara.recrypt(bufferHTML, outputHTML, {
-          password,
-          userPassword: password,
-          ownerPassword: password,
-          userProtectionFlag: 4,
+        const qpdfCommand = `qpdf --encrypt ${password} ${password} 256 -- ${filePath} --replace-input`;
+        exec(qpdfCommand, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(null);
+          }
         });
-        resolve(outputHTML.buffer);
       } catch (e) {
         reject(e);
       }
