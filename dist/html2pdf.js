@@ -55,7 +55,7 @@ class HTML2PDF {
             if (!options.protect) {
                 return;
             }
-            await this.encryptPDF(options.filePath, options.protect.password);
+            await this.encryptPDF(options.filePath, options.protect.password, options.setVersion);
         }
         catch (error) {
             console.error('Error generating PDF:', error);
@@ -82,10 +82,11 @@ class HTML2PDF {
             ],
         });
     }
-    async encryptPDF(filePath, password) {
+    async encryptPDF(filePath, password, version) {
         return new Promise((resolve, reject) => {
             try {
-                const qpdfCommand = `qpdf --encrypt ${password} ${password} 256 -- ${filePath} --replace-input`;
+                const { encryption, forceVersion } = this.getWeakConfigVersionPDF(version);
+                const qpdfCommand = `qpdf ${forceVersion}--encrypt ${password} ${password} ${encryption} -- ${filePath} --replace-input`;
                 (0, child_process_1.exec)(qpdfCommand, (err) => {
                     if (err) {
                         reject(err);
@@ -99,6 +100,18 @@ class HTML2PDF {
                 reject(e);
             }
         });
+    }
+    getWeakConfigVersionPDF(version) {
+        if (version === '1.4') {
+            return {
+                encryption: '128',
+                forceVersion: '--allow-weak-crypto --force-version=1.4 ',
+            };
+        }
+        return {
+            encryption: '256',
+            forceVersion: '',
+        };
     }
 }
 exports.default = HTML2PDF;

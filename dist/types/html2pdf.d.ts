@@ -9,4 +9,5 @@ export default class HTML2PDF {
     createPDF(html: string, options: HTML2PDFOptions): Promise<void>;
     private launchBrowser;
     private encryptPDF;
+    private getWeakConfigVersionPDF;
 }
