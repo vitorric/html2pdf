@@ -1,5 +1,7 @@
 import { PaperFormat } from 'puppeteer';
 
+export type PDFVersion = '1.4';
+
 export type HTML2PDFOptions = {
   format: PaperFormat;
   landscape: boolean;
@@ -11,4 +13,5 @@ export type HTML2PDFOptions = {
   protect?: {
     password: string;
   };
+  setVersion?: PDFVersion;
 };

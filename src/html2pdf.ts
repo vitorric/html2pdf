@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import { promises as fs } from 'fs';
 import puppeteer, { Browser, PDFOptions } from 'puppeteer';
 
-import { HTML2PDFOptions } from './types';
+import { HTML2PDFOptions, PDFVersion } from './types';
 
 export default class HTML2PDF {
   private browser: Browser = null;
@@ -106,11 +106,14 @@ export default class HTML2PDF {
 
   private async encryptPDF(
     filePath: string,
-    password: string
+    password: string,
+    version?: PDFVersion
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       try {
-        const qpdfCommand = `qpdf --encrypt ${password} ${password} 256 -- ${filePath} --replace-input`;
+        const { encryption, forceVersion } =
+          this.getWeakConfigVersionPDF(version);
+        const qpdfCommand = `qpdf ${forceVersion}--encrypt ${password} ${password} ${encryption} -- ${filePath} --replace-input`;
         exec(qpdfCommand, (err) => {
           if (err) {
             reject(err);
@@ -122,5 +125,22 @@ export default class HTML2PDF {
         reject(e);
       }
     });
+  }
+
+  private getWeakConfigVersionPDF(version?: PDFVersion): {
+    encryption: string;
+    forceVersion: string;
+  } {
+    if (version === '1.4') {
+      return {
+        encryption: '128',
+        forceVersion: '--allow-weak-crypto --force-version=1.4 ',
+      };
+    }
+
+    return {
+      encryption: '256',
+      forceVersion: '',
+    };
   }
 }
