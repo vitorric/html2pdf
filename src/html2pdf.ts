@@ -76,7 +76,11 @@ export default class HTML2PDF {
         return;
       }
 
-      await this.encryptPDF(options.filePath, options.protect.password);
+      await this.encryptPDF(
+        options.filePath,
+        options.protect.password,
+        options.setVersion
+      );
     } catch (error) {
       console.error('Error generating PDF:', error);
     }
