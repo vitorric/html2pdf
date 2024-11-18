@@ -18,8 +18,8 @@ const exampleSingleConversion = async () => {
     },
   };
 
-  await html2pdf.createPDF(html, options);
-  console.log('PDF Generated...');
+  const resultSingleConversion = await html2pdf.createPDF(html, options);
+  console.log('Single Conversion created: ', resultSingleConversion);
 };
 
 const exampleMultipleConversion = async () => {
@@ -43,7 +43,7 @@ const exampleMultipleConversion = async () => {
     await html2pdf.addToQueue(html, options);
   }
 
-  await html2pdf.createPDF(html, {
+  const anotherPDFCreated = await html2pdf.createPDF(html, {
     format: 'A4',
     filePath: `./example/multiples/another.pdf`,
     landscape: false,
@@ -54,8 +54,15 @@ const exampleMultipleConversion = async () => {
       height: 1920,
       width: 1080,
     },
+    setVersion: '1.4',
   });
+
+  console.log('Another PDF created: ', anotherPDFCreated);
 };
 
-exampleSingleConversion();
-exampleMultipleConversion();
+const main = async () => {
+  await exampleSingleConversion();
+  await exampleMultipleConversion();
+};
+
+main();

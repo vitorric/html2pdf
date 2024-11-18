@@ -25,11 +25,16 @@ describe('HTML2PDF: ', () => {
     .spyOn(HTML2PDF.prototype as any, 'launchBrowser')
     .mockImplementation(() => {
       (html2pdf as any).browser = {
+        close: async () => Promise.resolve(),
+        connected: true,
         newPage: async (): Promise<any> => {
           return {
             setContent: async () => Promise.resolve(),
             pdf: async () => Buffer.alloc(4),
             close: async () => Promise.resolve(),
+            on: async () => Promise.resolve(),
+            waitForFunction: async () => Promise.resolve(),
+            setRequestInterception: async () => Promise.resolve(),
           };
         },
       };
@@ -37,7 +42,7 @@ describe('HTML2PDF: ', () => {
 
   const encryptPDF = jest
     .spyOn(HTML2PDF.prototype as any, 'encryptPDF')
-    .mockImplementation((): any => Buffer.alloc(4));
+    .mockImplementation((): any => true);
 
   const fsMock = jest
     .spyOn(fs, 'writeFile')
@@ -45,6 +50,7 @@ describe('HTML2PDF: ', () => {
 
   describe('createPDF: ', () => {
     it('should be launch the browser 1 time', async () => {
+      await html2pdf.launchBrowser();
       await html2pdf.createPDF(htmlPage, pdfOptions);
       await html2pdf.createPDF(htmlPage, pdfOptions);
 
@@ -60,10 +66,10 @@ describe('HTML2PDF: ', () => {
 
       expect(launchBrowser).toHaveBeenCalled();
       expect(launchBrowser).toHaveBeenCalledTimes(1);
-      expect(pdfBuffer).toEqual(null);
+      expect(encryptPDF).not.toHaveBeenCalled();
       expect(fsMock).toHaveBeenCalled();
+      expect(pdfBuffer).toBe(true);
     });
-
     it('should be create the PDF protected', async () => {
       const pdfBuffer = await html2pdf.createPDF(htmlPage, {
         ...pdfOptions,
@@ -75,12 +81,11 @@ describe('HTML2PDF: ', () => {
 
       expect(launchBrowser).toHaveBeenCalled();
       expect(launchBrowser).toHaveBeenCalledTimes(1);
-      expect(pdfBuffer).toEqual(null);
+      expect(pdfBuffer).toEqual(true);
       expect(encryptPDF).toHaveBeenCalled();
       expect(fsMock).toHaveBeenCalled();
     });
   });
-
   describe('launchBrowser: ', () => {
     beforeAll(() => {
       jest.restoreAllMocks();

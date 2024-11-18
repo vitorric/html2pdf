@@ -1,54 +1,89 @@
 import { exec } from 'child_process';
+import { randomUUID } from 'crypto';
 import { promises as fs } from 'fs';
 import puppeteer, { Browser, PDFOptions } from 'puppeteer';
 
+import { Queue } from './queue';
 import { HTML2PDFOptions, PDFVersion } from './types';
 
 export default class HTML2PDF {
   private browser: Browser = null;
 
-  private queue = [];
+  private queue: Queue = null;
 
-  private processing = false;
+  private itensInQueue = 0;
+
+  private MAX_PROCESS_QUEUE = 5;
 
   constructor() {
-    this.queue = [];
-    this.processing = false;
+    this.queue = new Queue();
+    this.itensInQueue = 0;
   }
 
-  async addToQueue(htmlPath: string, options: HTML2PDFOptions): Promise<void> {
-    if (this.browser === null) {
-      this.browser = await this.launchBrowser();
+  async addToQueue(html: string, options: HTML2PDFOptions): Promise<void> {
+    if (this.browser === null || !this.isBrowserConnected()) {
+      await this.launchBrowser();
     }
 
-    this.queue.push({ htmlPath, options });
+    this.queue.enqueue({ id: randomUUID(), html2pdf: { html, options } });
 
-    if (!this.processing) {
+    if (this.itensInQueue < this.MAX_PROCESS_QUEUE) {
       this.processQueue();
     }
   }
 
   async processQueue(): Promise<void> {
-    if (this.queue.length === 0) {
-      this.processing = false;
+    if (
+      this.queue.size() === 0 ||
+      this.itensInQueue >= this.MAX_PROCESS_QUEUE
+    ) {
       return;
     }
 
-    this.processing = true;
-    const { htmlPath, options } = this.queue.shift();
-    await this.createPDF(htmlPath, options);
-    this.processQueue();
+    this.itensInQueue += 1;
+
+    const itemQueue = this.queue.peek();
+
+    try {
+      const pdfCreated = await this.createPDF(
+        itemQueue.html2pdf.html,
+        itemQueue.html2pdf.options
+      );
+
+      if (pdfCreated) {
+        this.itensInQueue -= 1;
+      }
+    } catch (error) {
+      console.error('Error processing PDF from queue:', error);
+      await this.restartBrowser();
+      this.queue.enqueue(itemQueue);
+    } finally {
+      this.processQueue();
+    }
   }
 
-  async createPDF(html: string, options: HTML2PDFOptions): Promise<void> {
+  async createPDF(html: string, options: HTML2PDFOptions): Promise<boolean> {
+    if (this.browser === null || !this.isBrowserConnected()) {
+      await this.launchBrowser();
+    }
+
+    const page = await this.browser.newPage();
+
     try {
-      if (this.browser === null) {
-        this.browser = await this.launchBrowser();
-      }
+      await page.setContent(html, {
+        waitUntil: 'networkidle2',
+        timeout: 60000,
+      });
 
-      const page = await this.browser.newPage();
+      await page.setRequestInterception(true);
 
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      page.on('request', (req) => {
+        if (['script'].includes(req.resourceType())) {
+          req.abort();
+        } else {
+          req.continue();
+        }
+      });
 
       const optionsPDF: PDFOptions = {
         format: options.format,
@@ -63,37 +98,37 @@ export default class HTML2PDF {
         () =>
           !Array.from(document.querySelectorAll('img')).find(
             (i: any) => !i.complete
-          )
+          ),
+        { timeout: 60000 }
       );
 
       const pdfBuffer = await page.pdf(optionsPDF);
 
-      await page.close();
-
       await fs.writeFile(options.filePath, pdfBuffer);
 
+      await page.close();
+
       if (!options.protect) {
-        return;
+        return true;
       }
 
-      await this.encryptPDF(
+      return this.encryptPDF(
         options.filePath,
         options.protect.password,
         options.setVersion
       );
     } catch (error) {
       console.error('Error generating PDF:', error);
+      await this.restartBrowser();
+      await this.addToQueue(html, options);
+      return false;
     }
   }
 
-  private async launchBrowser(): Promise<Browser> {
-    return puppeteer.launch({
+  public async launchBrowser(): Promise<void> {
+    this.browser = await puppeteer.launch({
       headless: true,
-      ignoreHTTPSErrors: true,
       devtools: false,
-      handleSIGHUP: true,
-      handleSIGTERM: true,
-      handleSIGINT: true,
       defaultViewport: {
         width: 1920,
         height: 1080,
@@ -108,11 +143,28 @@ export default class HTML2PDF {
     });
   }
 
+  private async restartBrowser(): Promise<void> {
+    if (this.browser) {
+      try {
+        await this.browser.close();
+      } catch (error) {
+        console.error('Error closing the browser during restart:', error);
+      } finally {
+        this.browser = null;
+        await this.launchBrowser();
+      }
+    }
+  }
+
+  private isBrowserConnected(): boolean {
+    return this.browser && this.browser.connected;
+  }
+
   private async encryptPDF(
     filePath: string,
     password: string,
     version?: PDFVersion
-  ): Promise<Buffer> {
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       try {
         const { encryption, forceVersion } =
@@ -122,7 +174,7 @@ export default class HTML2PDF {
           if (err) {
             reject(err);
           } else {
-            resolve(null);
+            resolve(true);
           }
         });
       } catch (e) {

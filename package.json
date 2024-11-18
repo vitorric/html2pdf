@@ -58,6 +58,6 @@
     "typescript"
   ],
   "dependencies": {
-    "puppeteer": "^22.12.1"
+    "puppeteer": "^23.8.0"
   }
 }

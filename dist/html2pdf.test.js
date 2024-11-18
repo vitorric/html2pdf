@@ -24,23 +24,29 @@ describe('HTML2PDF: ', () => {
         .spyOn(html2pdf_1.default.prototype, 'launchBrowser')
         .mockImplementation(() => {
         html2pdf.browser = {
+            close: async () => Promise.resolve(),
+            connected: true,
             newPage: async () => {
                 return {
                     setContent: async () => Promise.resolve(),
                     pdf: async () => Buffer.alloc(4),
                     close: async () => Promise.resolve(),
+                    on: async () => Promise.resolve(),
+                    waitForFunction: async () => Promise.resolve(),
+                    setRequestInterception: async () => Promise.resolve(),
                 };
             },
         };
     });
     const encryptPDF = jest
         .spyOn(html2pdf_1.default.prototype, 'encryptPDF')
-        .mockImplementation(() => Buffer.alloc(4));
+        .mockImplementation(() => true);
     const fsMock = jest
         .spyOn(fs_1.promises, 'writeFile')
         .mockImplementation(() => Promise.resolve());
     describe('createPDF: ', () => {
         it('should be launch the browser 1 time', async () => {
+            await html2pdf.launchBrowser();
             await html2pdf.createPDF(htmlPage, pdfOptions);
             await html2pdf.createPDF(htmlPage, pdfOptions);
             expect(launchBrowser).toHaveBeenCalled();
@@ -50,8 +56,9 @@ describe('HTML2PDF: ', () => {
             const pdfBuffer = await html2pdf.createPDF(htmlPage, Object.assign(Object.assign({}, pdfOptions), { filePath: './test.pdf' }));
             expect(launchBrowser).toHaveBeenCalled();
             expect(launchBrowser).toHaveBeenCalledTimes(1);
-            expect(pdfBuffer).toEqual(null);
+            expect(encryptPDF).not.toHaveBeenCalled();
             expect(fsMock).toHaveBeenCalled();
+            expect(pdfBuffer).toBe(true);
         });
         it('should be create the PDF protected', async () => {
             const pdfBuffer = await html2pdf.createPDF(htmlPage, Object.assign(Object.assign({}, pdfOptions), { filePath: './test.pdf', protect: {
@@ -59,7 +66,7 @@ describe('HTML2PDF: ', () => {
                 } }));
             expect(launchBrowser).toHaveBeenCalled();
             expect(launchBrowser).toHaveBeenCalledTimes(1);
-            expect(pdfBuffer).toEqual(null);
+            expect(pdfBuffer).toEqual(true);
             expect(encryptPDF).toHaveBeenCalled();
             expect(fsMock).toHaveBeenCalled();
         });
