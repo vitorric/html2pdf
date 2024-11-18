@@ -1,6 +1,6 @@
 {
   "name": "html2pdf-ts",
-  "version": "1.2.22",
+  "version": "1.2.23",
   "description": "Convert HTML to PDF.",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
@@ -11,7 +11,10 @@
     "test:cov": "jest --coverage"
   },
   "author": "Vitor Ricardo <vitorricardo@outlook.com>",
-  "repository": "git+https://github.com/vitorric/html2pdf.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vitorric/html2pdf.git"
+  },
   "license": "ISC",
   "files": [
     "dist"
