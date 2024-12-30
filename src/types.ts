@@ -14,4 +14,8 @@ export type HTML2PDFOptions = {
     password: string;
   };
   setVersion?: PDFVersion;
+  pageBreak?: {
+    before?: string;
+    after?: string;
+  };
 };
