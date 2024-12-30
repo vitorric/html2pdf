@@ -68,9 +68,28 @@ export default class HTML2PDF {
     }
 
     const page = await this.browser.newPage();
+    let modifiedHtml = html;
 
     try {
-      await page.setContent(html, {
+      if (options.pageBreak) {
+        const pageBreakCSS = `
+					<style>
+						${
+              options.pageBreak.before
+                ? `${options.pageBreak.before} { page-break-before: always; }`
+                : ''
+            }
+						${
+              options.pageBreak.after
+                ? `${options.pageBreak.after} { page-break-after: always; }`
+                : ''
+            }
+					</style>
+				`;
+        modifiedHtml = pageBreakCSS + html;
+      }
+
+      await page.setContent(modifiedHtml, {
         waitUntil: 'networkidle2',
         timeout: 60000,
       });
